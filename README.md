@@ -48,8 +48,7 @@ Includes 10 key input features after preprocessing.
 
 ## Clone the repo
 
-git clone: https://github.com/PriyanshiSangwan/stroke-detection
-
+git clone: https://github.com/Priyyya21/Stroke-Prediction
 
 ## Features
 
