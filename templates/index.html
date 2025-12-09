@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Stroke Risk Predictor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-gradient: radial-gradient(circle at top, #3a1c71 0%, #1b1026 40%, #0b0611 100%);
+            --card-bg: rgba(15, 10, 24, 0.9);
+            --accent: #f4c38c;         /* rose gold */
+            --accent-soft: rgba(244, 195, 140, 0.25);
+            --danger: #f97373;
+            --success: #4ade80;
+            --text-main: #f9fafb;
+            --text-muted: #b0a4c0;
+            --border-soft: rgba(148, 119, 184, 0.55);
+            --shadow-soft: 0 26px 70px rgba(7, 4, 16, 0.95);
+            --radius-xl: 26px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            background-image: var(--bg-gradient);
+            background-size: 160% 160%;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: bg-move 18s ease-in-out infinite alternate;
+        }
+
+        @keyframes bg-move {
+            0% { background-position: 0% 40%; }
+            100% { background-position: 100% 60%; }
+        }
+
+        .wrapper {
+            width: 100%;
+            max-width: 780px;
+        }
+
+        .card {
+            background:
+                radial-gradient(circle at top left, rgba(246, 224, 181, 0.20), transparent 55%),
+                radial-gradient(circle at bottom right, rgba(111, 66, 193, 0.25), transparent 55%),
+                var(--card-bg);
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--border-soft);
+            box-shadow: var(--shadow-soft);
+            padding: 28px 22px 20px;
+            backdrop-filter: blur(20px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg,
+                rgba(244, 195, 140, 0.18),
+                transparent 35%,
+                transparent 65%,
+                rgba(111, 66, 193, 0.2)
+            );
+            opacity: 0.6;
+            mix-blend-mode: soft-light;
+            pointer-events: none;
+        }
+
+        .inner {
+            position: relative;
+            z-index: 1;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 11px;
+            border-radius: 999px;
+            background: rgba(11, 6, 17, 0.92);
+            border: 1px solid rgba(244, 195, 140, 0.55);
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+
+        .badge-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: #22c55e;
+            box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.25);
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+
+        .logo-circle {
+            width: 56px;
+            height: 56px;
+            border-radius: 999px;
+            border: 1px solid rgba(244, 195, 140, 0.85);
+            background: conic-gradient(from 180deg, #f4c38c, #d977b9, #6f42c1, #f4c38c);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 28px;
+            color: #1c0f2b;
+            box-shadow: 0 18px 40px rgba(6, 3, 12, 0.9);
+        }
+
+        .title-block h1 {
+            font-size: 1.8rem;
+            margin: 0;
+            letter-spacing: 0.045em;
+        }
+
+        .title-block p {
+            margin: 4px 0 0;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        form {
+            margin-top: 14px;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px 18px;
+        }
+
+        @media (max-width: 650px) {
+            form {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        label {
+            font-size: 0.84rem;
+            color: #f5f3ff;
+            font-weight: 500;
+        }
+
+        label span {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        input, select {
+            padding: 9px 11px;
+            border-radius: 16px;
+            border: 1px solid rgba(148, 119, 184, 0.7);
+            background: rgba(8, 5, 15, 0.95);
+            color: var(--text-main);
+            font-size: 0.85rem;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.05s ease, background 0.2s ease;
+        }
+
+        input::placeholder {
+            color: #7d6c9c;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 1px var(--accent-soft);
+            transform: translateY(-1px);
+            background: rgba(9, 7, 18, 0.97);
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .btn-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        button {
+            border: none;
+            border-radius: 999px;
+            padding: 10px 18px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.18s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background-image: linear-gradient(135deg, #f4c38c, #d977b9, #6f42c1);
+            color: #14091f;
+            box-shadow: 0 12px 30px rgba(39, 19, 70, 0.95);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 18px 46px rgba(39, 19, 70, 1);
+        }
+
+        .btn-secondary {
+            background: rgba(9, 6, 15, 0.98);
+            color: var(--text-muted);
+            border: 1px solid rgba(148, 119, 184, 0.9);
+            box-shadow: 0 9px 24px rgba(4, 2, 9, 0.9);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-icon {
+            font-size: 1.05rem;
+        }
+
+        .result-card {
+            margin-top: 19px;
+            padding: 16px 18px 14px;
+            border-radius: 20px;
+            border: 1px solid rgba(148, 119, 184, 0.9);
+            background:
+                radial-gradient(circle at top right, rgba(244, 195, 140, 0.18), transparent 60%),
+                rgba(10, 5, 18, 0.98);
+        }
+
+        .result-card.low {
+            border-color: rgba(74, 222, 128, 0.85);
+            background:
+                radial-gradient(circle at top right, rgba(74, 222, 128, 0.18), transparent 60%),
+                rgba(10, 5, 18, 0.98);
+        }
+
+        .result-card.high {
+            border-color: rgba(248, 113, 113, 0.9);
+            background:
+                radial-gradient(circle at top right, rgba(248, 113, 113, 0.18), transparent 60%),
+                rgba(10, 5, 18, 0.98);
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .result-label {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .risk-chip {
+            padding: 3px 11px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            border: 1px solid rgba(148, 119, 184, 0.8);
+            background: rgba(12, 7, 19, 0.96);
+        }
+
+        .risk-chip.low {
+            border-color: rgba(74, 222, 128, 0.85);
+            color: var(--success);
+        }
+
+        .risk-chip.high {
+            border-color: rgba(248, 113, 113, 0.9);
+            color: var(--danger);
+        }
+
+        .probability-text {
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .risk-message {
+            font-size: 0.85rem;
+        }
+
+        .error-message {
+            margin-top: 14px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(248, 113, 113, 0.8);
+            background: rgba(248, 113, 113, 0.14);
+            font-size: 0.8rem;
+            color: #fee2e2;
+        }
+
+        .note {
+            margin: 18px 4px 4px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            border-top: 1px dashed rgba(148, 119, 184, 0.55);
+            padding-top: 10px;
+        }
+
+        .highlight {
+            color: var(--accent);
+        }
+    </style>
+</head>
+<body>
+<div class="wrapper">
+    <div class="card">
+        <div class="inner">
+            <div class="badge">
+                <span class="badge-dot"></span>
+                AI-based stroke risk estimation
+            </div>
+
+            <div class="header">
+                <div class="logo-circle">S</div>
+                <div class="title-block">
+                    <h1>Stroke Risk Predictor</h1>
+                    <p>Fill in your health details and get an instant risk estimate from your trained model.</p>
+                </div>
+            </div>
+
+            <form method="POST" action="/">
+                <!-- gender -->
+                <div class="form-group">
+                    <label for="gender">Gender <span>(encoded)</span></label>
+                    <select id="gender" name="gender" required>
+                        <option value="" disabled selected>Select gender</option>
+                        <option value="0">Female</option>
+                        <option value="1">Male</option>
+                    </select>
+                </div>
+
+                <!-- age -->
+                <div class="form-group">
+                    <label for="age">Age <span>(years)</span></label>
+                    <input
+                        type="number"
+                        step="1"
+                        min="1"
+                        max="120"
+                        id="age"
+                        name="age"
+                        placeholder="e.g. 45"
+                        required
+                    />
+                </div>
+
+                <!-- hypertension -->
+                <div class="form-group">
+                    <label for="hypertension">Hypertension <span>(0 = No, 1 = Yes)</span></label>
+                    <select id="hypertension" name="hypertension" required>
+                        <option value="" disabled selected>Select</option>
+                        <option value="0">No</option>
+                        <option value="1">Yes</option>
+                    </select>
+                </div>
+
+                <!-- heart disease -->
+                <div class="form-group">
+                    <label for="heart_disease">Heart Disease <span>(0 = No, 1 = Yes)</span></label>
+                    <select id="heart_disease" name="heart_disease" required>
+                        <option value="" disabled selected>Select</option>
+                        <option value="0">No</option>
+                        <option value="1">Yes</option>
+                    </select>
+                </div>
+
+                <!-- ever married -->
+                <div class="form-group">
+                    <label for="ever_married">Ever Married <span>(0 = No, 1 = Yes)</span></label>
+                    <select id="ever_married" name="ever_married" required>
+                        <option value="" disabled selected>Select</option>
+                        <option value="0">No</option>
+                        <option value="1">Yes</option>
+                    </select>
+                </div>
+
+                <!-- work type -->
+                <div class="form-group">
+                    <label for="work_type">Work Type <span>(encoded)</span></label>
+                    <select id="work_type" name="work_type" required>
+                        <option value="" disabled selected>Select work type</option>
+                        <option value="0">Children</option>
+                        <option value="1">Government Job</option>
+                        <option value="2">Never Worked</option>
+                        <option value="3">Private</option>
+                        <option value="4">Self Employed</option>
+                    </select>
+                </div>
+
+                <!-- residence type -->
+                <div class="form-group">
+                    <label for="residence_type">Residence Type <span>(0 = Rural, 1 = Urban)</span></label>
+                    <select id="residence_type" name="residence_type" required>
+                        <option value="" disabled selected>Select</option>
+                        <option value="0">Rural</option>
+                        <option value="1">Urban</option>
+                    </select>
+                </div>
+
+                <!-- avg glucose -->
+                <div class="form-group">
+                    <label for="avg_glucose_level">Average Glucose Level <span>(mg/dL)</span></label>
+                    <input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        id="avg_glucose_level"
+                        name="avg_glucose_level"
+                        placeholder="e.g. 105.6"
+                        required
+                    />
+                </div>
+
+                <!-- bmi -->
+                <div class="form-group">
+                    <label for="bmi">BMI <span>(Body Mass Index)</span></label>
+                    <input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        id="bmi"
+                        name="bmi"
+                        placeholder="e.g. 26.3"
+                        required
+                    />
+                </div>
+
+                <!-- smoking status -->
+                <div class="form-group">
+                    <label for="smoking_status">Smoking Status <span>(encoded)</span></label>
+                    <select id="smoking_status" name="smoking_status" required>
+                        <option value="" disabled selected>Select smoking status</option>
+                        <option value="0">Never smoked</option>
+                        <option value="1">Formerly smoked</option>
+                        <option value="2">Smokes</option>
+                        <option value="3">Unknown</option>
+                    </select>
+                </div>
+
+                <!-- Buttons -->
+                <div class="form-group full-width">
+                    <div class="btn-row">
+                        <button type="submit" class="btn-primary">
+                            <span class="btn-icon">⚡</span>
+                            <span>Predict Stroke Risk</span>
+                        </button>
+                        <button type="reset" class="btn-secondary" onclick="clearResult()">
+                            <span class="btn-icon">🧹</span>
+                            <span>Reset</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            {% if prediction_label or error_message %}
+                {% set risk_class = "" %}
+                {% if prediction_label %}
+                    {% if "High" in prediction_label %}
+                        {% set risk_class = "high" %}
+                    {% elif "Low" in prediction_label %}
+                        {% set risk_class = "low" %}
+                    {% endif %}
+                {% endif %}
+
+                {% if prediction_label %}
+                <div class="result-card {{ risk_class }}">
+                    <div class="result-header">
+                        <div class="result-label">
+                            {{ prediction_label }}
+                        </div>
+                        <div class="risk-chip {{ risk_class }}">
+                            {{ probability }}% risk
+                        </div>
+                    </div>
+                    <div class="probability-text">
+                        Estimated probability of stroke (class <span class="highlight">1</span>): <strong>{{ probability }}%</strong>
+                    </div>
+                    <div class="risk-message">
+                        {{ risk_message }}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if error_message %}
+                <div class="error-message">
+                    ⚠ {{ error_message }}
+                </div>
+                {% endif %}
+            {% endif %}
+
+            <p class="note">
+                ⚕ <strong>Disclaimer:</strong> This tool uses a machine learning model and is meant for
+                <span class="highlight">educational and exploratory purposes only</span>. It is not medical advice.
+                Please consult a qualified healthcare professional for any health-related decisions.
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+    function clearResult() {
+        setTimeout(function () {
+            window.location.href = "/";
+        }, 50);
+    }
+</script>
+</body>
+</html>
